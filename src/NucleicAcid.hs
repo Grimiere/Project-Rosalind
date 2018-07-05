@@ -8,13 +8,16 @@ module NucleicAcid (
     dnaToRNA,
     getDNACompliment,
     hammingDistance,
+    stringsToFASTA,
 ) where 
 
 import Data.Char
 import Data.List
+import System.IO
 
 data Nucleotide = A | C | G | T | U deriving (Show,Read, Eq)
-type NucleicAcid = [Nucleotide] 
+type NucleicAcid = [Nucleotide]
+data FASTA = FASTA String NucleicAcid deriving (Show, Read, Eq)
 
 stringToNucleic :: String -> Maybe NucleicAcid
 stringToNucleic [] = Nothing
@@ -74,3 +77,56 @@ hammingDistance' _ [] i = i
 hammingDistance' (x:xs) (y:ys) i = if (x /= y) 
                                   then hammingDistance' xs ys (i + 1)
                                   else hammingDistance' xs ys i
+
+gcContent :: NucleicAcid -> Double
+gcContent na = (fromIntegral(c + g)) / (fromIntegral(a + c + g + t))
+    where a = countNucleotide na A
+          c = countNucleotide na C
+          g = countNucleotide na G
+          t = countNucleotide na T
+
+stringsToFASTA :: [String] -> Maybe FASTA
+stringsToFASTA [] = Nothing
+stringsToFASTA (x:xs)
+    | head x == '>' = let nucleic = stringToNucleic (concat xs) in
+                      case nucleic of
+                        Nothing -> Nothing
+                        Just na -> Just (FASTA x na)
+    | otherwise = Nothing
+
+prepFASTAFormat :: [String] -> [[String]]
+prepFASTAFormat [] = []
+prepFASTAFormat input = prepFASTAFormat' input []
+
+prepFASTAFormat' :: [String] -> [[String]] -> [[String]]
+prepFASTAFormat' [] carry = carry
+prepFASTAFormat' (x:xs) carry
+    | isFASTAHeader x = let nucleics = takeWhile isNucleic xs in
+                        prepFASTAFormat' xs (carry ++ [[x] ++ nucleics])
+    | otherwise = prepFASTAFormat' xs carry
+
+isFASTAHeader :: String -> Bool
+isFASTAHeader [] = False
+isFASTAHeader (x:xs)
+    | x == '>' = True
+    | otherwise = False
+
+isNucleic :: String -> Bool
+isNucleic str = case (stringToNucleic str) of
+                    Nothing -> False
+                    Just x -> True
+
+highestGCContent :: [FASTA] -> Maybe (String, Double)
+highestGCContent [] = Nothing
+highestGCContent fastas = Just $ highestGCContent' fastas (head fastas)
+
+--TODO: Clean this up.
+highestGCContent' :: [FASTA] -> FASTA -> (String, Double)
+highestGCContent' [] (FASTA id nucleic) = (id, 100 * (gcContent nucleic)) 
+highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
+    | current > high = highestGCContent' xs (FASTA id nucleic)
+    | otherwise = highestGCContent' xs (FASTA idH nucleicH)
+    where current = gcContent nucleic
+          high = gcContent nucleicH
+
+    
