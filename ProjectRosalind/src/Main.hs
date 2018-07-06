@@ -10,7 +10,7 @@ main = do
     cHandle <- openFile "CodonTable.txt" ReadMode
     cContents <- lines <$> hGetContents cHandle
     rHandle <- openFile "rna.txt" ReadMode
-    rContents <- sanitize <$> hGetContents rHandle
+    rContents <- init <$> hGetContents rHandle
 
     let table = createCodonTable cContents
     let rna = stringToNucleic rContents

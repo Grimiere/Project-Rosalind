@@ -1,1 +1,0 @@
-ghc -O1 -isrc src/Main.hs -odir bin/Intermediates -hidir bin/Intermediates -o bin/Rosalind.exe --make
