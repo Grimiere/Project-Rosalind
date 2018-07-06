@@ -6,7 +6,9 @@ module Peptide (
     codonToAmino,
     createCodonTable,
     rnaToPeptide,
-    peptideToString
+    peptideToString,
+    getAminoCodons,
+    stringToPeptide
 ) where
 
 import qualified NucleicAcid as NA
@@ -65,3 +67,15 @@ stringToCodon str
 
 peptideToString :: Peptide -> String
 peptideToString p = concat $ map show p
+
+stringToPeptide :: String -> Maybe Peptide
+stringToPeptide [] = Nothing
+stringToPeptide str = stringToPeptide' str []
+
+stringToPeptide' :: String -> [Maybe AminoAcid] -> Maybe Peptide
+stringToPeptide' [] carry = sequence carry
+stringToPeptide' (x:xs) carry = stringToPeptide' xs (carry ++ [readMaybe [x] ])
+
+getAminoCodons :: AminoAcid -> CodonTable -> [Codon]
+getAminoCodons amino table = let list = UM.toList table in
+                             map fst $ filter (\pair -> (snd pair )== amino) list

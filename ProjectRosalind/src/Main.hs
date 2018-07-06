@@ -3,25 +3,31 @@ import Peptide
 import Misc
 
 import System.IO
+import qualified System.IO.Strict as Strict
 import Data.List
 
 main :: IO ()
 main = do
-    cHandle <- openFile "CodonTable.txt" ReadMode
-    cContents <- lines <$> hGetContents cHandle
-    rHandle <- openFile "rna.txt" ReadMode
-    rContents <- sanitize <$> hGetContents rHandle
+    table <- loadCodonTable
+    peptide <- stringToPeptide <$> getInput
+    case peptide of
+        Nothing -> putStrLn "Invalid peptide." >> return ()
+        Just p -> let result = (product $ map (\a -> toInteger $ length $ getAminoCodons a table) (p ++ [STOP])) :: Integer in
+            print $  result `mod` 1000000
 
-    let table = createCodonTable cContents
-    let rna = stringToNucleic rContents
-    case rna of 
-        Nothing -> error "Unable to construct RNA sequence"
-        Just n -> let result = rnaToPeptide n table in
-                  writeResults (peptideToString result) 
-    hClose cHandle
-    hClose rHandle
     putStrLn "Finished."
     return ()
 
+loadCodonTable :: IO (CodonTable)
+loadCodonTable = do
+    cHandle <- openFile "CodonTable.txt" ReadMode
+    cContents <- lines <$> Strict.hGetContents cHandle
+    let table = createCodonTable cContents
+    hClose cHandle
+    return table
+
 writeResults :: String -> IO ()
 writeResults = writeFile "results.txt"
+
+getInput :: IO (String)
+getInput = sanitize <$> readFile "input.txt"
