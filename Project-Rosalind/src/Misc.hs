@@ -1,6 +1,10 @@
 module Misc (
-    unconcat
+    unconcat,
+    sanitize
 ) where
+
+sanitize :: String -> String
+sanitize = filter (/= '\0') . filter (/= '\n')
 
 unconcat :: [a] -> [[a]]
 unconcat [] = []

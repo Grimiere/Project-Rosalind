@@ -30,8 +30,8 @@ createCodonTable str =  createCodonTable' str UM.empty
 createCodonTable' :: [String] -> CodonTable -> CodonTable
 createCodonTable' [] carry = carry
 createCodonTable' (x:xs) carry = do
-    let amino = (read :: String -> AminoAcid) [head x]
-    let codonsStr = words $ drop 3 x
+    let amino = (read :: String -> AminoAcid) (takeWhile (/= ':') x)
+    let codonsStr = words $ drop 1 $ dropWhile(/= ':') x
     let codons = map stringToCodon codonsStr
     let fixed = sequence codons
     case fixed of
@@ -50,6 +50,7 @@ rnaToPeptide' l _ carry
             | length l < 3 = carry
 rnaToPeptide' (x:y:z:xs) table carry = case amino of
                                        Nothing -> []
+                                       Just STOP -> carry --Stop codon reached, no more synthesis.
                                        Just a -> rnaToPeptide' xs table (carry ++ [a])
     where amino = codonToAmino (x,y,z) table
 
