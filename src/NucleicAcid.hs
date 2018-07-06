@@ -1,5 +1,7 @@
 module NucleicAcid (
     Nucleotide (..),
+    NucleicAcid,
+    FASTA,
     stringToNucleic,
     nucleicToString,
     charToNucleotide,
