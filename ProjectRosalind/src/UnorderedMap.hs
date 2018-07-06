@@ -27,13 +27,13 @@ singleton :: (k,v) -> UnorderedMap k v
 singleton kv = UnorderedMap [kv]
 
 insert :: (Eq k) => (k, v) -> UnorderedMap k v -> UnorderedMap k v
-insert _ (UnorderedMap []) = UnorderedMap.empty
+--insert _ (UnorderedMap []) = UnorderedMap.empty
 insert (k, v) m
     | hasElement m k = UnorderedMap.empty
     | otherwise = UnorderedMap $ (toList m) ++ [(k,v)]
 
 insertSet :: (Eq k) => [(k,v)] -> UnorderedMap k v -> UnorderedMap k v
-insertSet [] m = m
+--insertSet [] m = m
 insertSet set m = let newMap = UnorderedMap set in
                   m `union` newMap
     

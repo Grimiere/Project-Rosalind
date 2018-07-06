@@ -3,8 +3,11 @@ module Peptide (
     AminoAcid (..),
     Codon,
     CodonTable,
+    MassTable,
     codonToAmino,
     createCodonTable,
+    aminoToMass,
+    createMassTable,
     rnaToPeptide,
     peptideToString,
     getAminoCodons,
@@ -12,7 +15,7 @@ module Peptide (
 ) where
 
 import qualified NucleicAcid as NA
-import Misc (unconcat)
+import Misc (unconcat, sanitize)
 import Data.List
 import qualified UnorderedMap as UM
 import Text.Read (readMaybe)
@@ -22,6 +25,7 @@ data AminoAcid = A | R | N | D | C | Q | E | G | H | I | L | K |
                  M | F | P | S | T | W | Y | V | STOP deriving (Show, Read, Eq, Enum)
 type Codon = (NA.Nucleotide, NA.Nucleotide, NA.Nucleotide)
 type CodonTable = UM.UnorderedMap Codon AminoAcid
+type MassTable = UM.UnorderedMap AminoAcid Double
 
 codonToAmino :: Codon -> CodonTable -> Maybe AminoAcid
 codonToAmino codon table = UM.lookup codon table  
@@ -40,7 +44,20 @@ createCodonTable' (x:xs) carry = do
         Nothing -> UM.empty
         Just ys -> do
             let new = map (\c -> (c, amino)) ys
-            createCodonTable' xs (UM.insertSet new carry) 
+            createCodonTable' xs (UM.insertSet new carry)
+        
+aminoToMass :: MassTable -> AminoAcid -> Maybe Double
+aminoToMass table amino = UM.lookup amino table
+
+createMassTable :: [String] -> MassTable
+createMassTable str = createMassTable' str UM.empty
+
+createMassTable':: [String] -> MassTable -> MassTable
+createMassTable' [] carry = carry
+createMassTable' (x:xs) carry = do
+    let amino = (read :: String -> AminoAcid) (takeWhile (/= ':') x)
+    let mass = (read :: String -> Double ) $ sanitize $ drop 1 $ dropWhile (/= ':') x
+    createMassTable' xs (UM.insert (amino, mass) carry)
 
 rnaToPeptide :: NA.NucleicAcid -> CodonTable -> Peptide
 rnaToPeptide [] _ = []

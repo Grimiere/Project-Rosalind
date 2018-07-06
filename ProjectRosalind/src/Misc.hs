@@ -4,7 +4,7 @@ module Misc (
 ) where
 
 sanitize :: String -> String
-sanitize = filter (/= '\0') . filter (/= '\n')
+sanitize = filter (/= ' ') . filter (/= '\0') . filter (/= '\n')
 
 unconcat :: [a] -> [[a]]
 unconcat [] = []

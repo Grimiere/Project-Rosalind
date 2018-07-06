@@ -8,14 +8,15 @@ import Data.List
 
 main :: IO ()
 main = do
-    table <- loadCodonTable
+    table <- loadMassTable
     peptide <- stringToPeptide <$> getInput
     case peptide of
         Nothing -> putStrLn "Invalid peptide." >> return ()
-        Just p -> let result = (product $ map (\a -> toInteger $ length $ getAminoCodons a table) (p ++ [STOP])) :: Integer in
-            print $  result `mod` 1000000
+        Just p -> let result = sum <$> (sequence $ map (aminoToMass table) p) in 
+                  print result
 
     putStrLn "Finished."
+    line <- getLine
     return ()
 
 loadCodonTable :: IO (CodonTable)
@@ -24,6 +25,14 @@ loadCodonTable = do
     cContents <- lines <$> Strict.hGetContents cHandle
     let table = createCodonTable cContents
     hClose cHandle
+    return table
+
+loadMassTable :: IO (MassTable)
+loadMassTable = do
+    mHandle <- openFile "MassTable.txt" ReadMode
+    mContents <- lines <$> Strict.hGetContents mHandle
+    let table = createMassTable mContents
+    hClose mHandle
     return table
 
 writeResults :: String -> IO ()
