@@ -10,14 +10,14 @@ main = do
     cHandle <- openFile "CodonTable.txt" ReadMode
     cContents <- lines <$> hGetContents cHandle
     rHandle <- openFile "rna.txt" ReadMode
-    rContents <- init <$> hGetContents rHandle
+    rContents <- sanitize <$> hGetContents rHandle
 
     let table = createCodonTable cContents
     let rna = stringToNucleic rContents
     case rna of 
         Nothing -> error "Unable to construct RNA sequence"
         Just n -> let result = rnaToPeptide n table in
-                  putStrLn (peptideToString result) 
+                  writeResults (peptideToString result) 
     hClose cHandle
     hClose rHandle
     putStrLn "Finished."
