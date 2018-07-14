@@ -1,1 +1,0 @@
-stack ghc -- -O1 -isrc src/Main.hs -o bin/Rosalind.exe -odir bin/Intermediates -hidir bin/Intermediates 

@@ -8,14 +8,7 @@ import Data.List
 
 main :: IO ()
 main = do
-    table <- loadMassTable
-    peptide <- stringToPeptide <$> getInput
-    case peptide of
-        Nothing -> putStrLn "Invalid peptide." >> return ()
-        Just p -> let result = sum <$> (sequence $ map (aminoToMass table) p) in 
-                  print result
-
-    putStrLn "Finished."
+    putStrLn "Test."
     line <- getLine
     return ()
 
