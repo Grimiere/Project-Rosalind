@@ -8,9 +8,14 @@ import Data.List
 
 main :: IO ()
 main = do
-    putStrLn "Test."
-    line <- getLine
-    return ()
+    n <- (read :: String -> Int) <$> getLine
+    let perms = permutations [1..n]
+    let lPerms = length perms
+    handle <- openFile "results.txt" WriteMode
+    let write = writeResults handle
+    write (show lPerms)
+    mapM_ write (map tidyList perms)
+    hClose handle
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
@@ -28,8 +33,14 @@ loadMassTable = do
     hClose mHandle
     return table
 
-writeResults :: String -> IO ()
-writeResults = writeFile "results.txt"
+writeResults :: Handle -> String -> IO ()
+writeResults h str = hPutStrLn h str
 
 getInput :: IO (String)
 getInput = sanitize <$> readFile "input.txt"
+
+
+tidyList :: (Show a) => [a] -> String
+tidyList [] = ""
+tidyList [x] = (show x)
+tidyList (x:xs) = (show x) ++ " " ++ (tidyList xs)
