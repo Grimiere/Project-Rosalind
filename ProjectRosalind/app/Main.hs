@@ -8,14 +8,11 @@ import Data.List
 
 main :: IO ()
 main = do
-    n <- (read :: String -> Int) <$> getLine
-    let perms = permutations [1..n]
-    let lPerms = length perms
-    handle <- openFile "results.txt" WriteMode
-    let write = writeResults handle
-    write (show lPerms)
-    mapM_ write (map tidyList perms)
-    hClose handle
+    dna <- stringToNucleic <$> getInput
+    let count = getNucleotides <$> dna
+    case count of
+        Just tuple -> print tuple
+        Nothing -> putStrLn "Invalid data entered."
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
@@ -38,7 +35,6 @@ writeResults h str = hPutStrLn h str
 
 getInput :: IO (String)
 getInput = sanitize <$> readFile "input.txt"
-
 
 tidyList :: (Show a) => [a] -> String
 tidyList [] = ""
