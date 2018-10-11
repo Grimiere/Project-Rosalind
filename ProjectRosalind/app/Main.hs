@@ -6,6 +6,7 @@ import System.IO
 import qualified System.IO.Strict as Strict
 import Data.List
 
+--Test
 main :: IO ()
 main = do
     dna <- stringToNucleic <$> getInput
