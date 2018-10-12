@@ -10,6 +10,7 @@ module NucleicAcid (
     dnaToRNA,
     getDNACompliment,
     hammingDistance,
+    getGCContent,
     stringsToFASTA,
 ) where 
 
@@ -80,12 +81,10 @@ hammingDistance' (x:xs) (y:ys) i = if (x /= y)
                                   then hammingDistance' xs ys (i + 1)
                                   else hammingDistance' xs ys i
 
-gcContent :: NucleicAcid -> Double
-gcContent na = (fromIntegral(c + g)) / (fromIntegral(a + c + g + t))
-    where a = countNucleotide na A
-          c = countNucleotide na C
+getGCContent :: NucleicAcid -> Double
+getGCContent na = 100 * (fromIntegral (c + g)) / (fromIntegral(length na))
+    where c = countNucleotide na C
           g = countNucleotide na G
-          t = countNucleotide na T
 
 stringsToFASTA :: [String] -> Maybe FASTA
 stringsToFASTA [] = Nothing
@@ -124,11 +123,11 @@ highestGCContent fastas = Just $ highestGCContent' fastas (head fastas)
 
 --TODO: Clean this up.
 highestGCContent' :: [FASTA] -> FASTA -> (String, Double)
-highestGCContent' [] (FASTA id nucleic) = (id, 100 * (gcContent nucleic)) 
+highestGCContent' [] (FASTA id nucleic) = (id, 100 * (getGCContent nucleic)) 
 highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
     | current > high = highestGCContent' xs (FASTA id nucleic)
     | otherwise = highestGCContent' xs (FASTA idH nucleicH)
-    where current = gcContent nucleic
-          high = gcContent nucleicH
+    where current = getGCContent nucleic
+          high = getGCContent nucleicH
 
     

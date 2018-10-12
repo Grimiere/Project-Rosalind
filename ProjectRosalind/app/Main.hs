@@ -6,14 +6,12 @@ import System.IO
 import qualified System.IO.Strict as Strict
 import Data.List
 
---Test
 main :: IO ()
 main = do
     dna <- stringToNucleic <$> getInput
-    let count = getNucleotides <$> dna
-    case count of
-        Just tuple -> print tuple
-        Nothing -> putStrLn "Invalid data entered."
+    write <- writeResults <$> openFile "results.txt" WriteMode
+    write $ show $ getGCContent <$> dna
+    putStrLn "Done."
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
@@ -32,7 +30,7 @@ loadMassTable = do
     return table
 
 writeResults :: Handle -> String -> IO ()
-writeResults h str = hPutStrLn h str
+writeResults h str = hPutStrLn h str >> hClose h
 
 getInput :: IO (String)
 getInput = sanitize <$> readFile "input.txt"
