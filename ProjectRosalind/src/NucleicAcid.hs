@@ -84,7 +84,7 @@ hammingDistance' (x:xs) (y:ys) i = if (x /= y)
                                   else hammingDistance' xs ys i
 
 gcContent :: NucleicAcid -> Double
-gcContent na = (fromIntegral(c + g)) / (fromIntegral(length na))
+gcContent na = 100 * (fromIntegral(c + g)) / (fromIntegral(length na))
     where c = countNucleotide na C
           g = countNucleotide na G
 
@@ -140,7 +140,7 @@ getHeader (FASTA str _) = str
 --TODO: Clean this up.
 {- 
 highestGCContent' :: [FASTA] -> FASTA -> (String, Double)
-highestGCContent' [] (FASTA id nucleic) = (id, 100 * (gcContent nucleic)) 
+highestGCContent' [] (FASTA id nucleic) = (id, 100 * (getGCContent nucleic)) 
 highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
     | current > high = highestGCContent' xs (FASTA id nucleic)
     | otherwise = highestGCContent' xs (FASTA idH nucleicH)

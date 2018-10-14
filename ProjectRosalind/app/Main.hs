@@ -32,7 +32,7 @@ loadMassTable = do
     return table
 
 writeResults :: Handle -> String -> IO ()
-writeResults h str = hPutStrLn h str
+writeResults h str = hPutStrLn h str >> hClose h
 
 getInput :: IO (String)
 getInput = sanitize <$> readFile "input.txt"
