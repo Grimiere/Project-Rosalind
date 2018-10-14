@@ -7,10 +7,13 @@ module NucleicAcid (
     charToNucleotide,
     countNucleotide,
     getNucleotides,
+    gcContent,
     dnaToRNA,
-    getDNACompliment,
+    getDNAComplement,
+    deoxyNucleotideComplement,
     hammingDistance,
-    stringsToFASTA,
+    stringToFASTAS,
+    highestGCContent
 ) where 
 
 import Data.Char
@@ -67,8 +70,8 @@ deoxyNucleotideComplement T = A
 deoxyNucleotideComplement C = G
 deoxyNucleotideComplement G = C
 
-getDNACompliment :: NucleicAcid -> NucleicAcid
-getDNACompliment = reverse . map deoxyNucleotideComplement
+getDNAComplement :: NucleicAcid -> NucleicAcid
+getDNAComplement = map deoxyNucleotideComplement
 
 hammingDistance :: NucleicAcid -> NucleicAcid -> Int
 hammingDistance n1 n2 =  hammingDistance' n1 n2 0
@@ -81,11 +84,12 @@ hammingDistance' (x:xs) (y:ys) i = if (x /= y)
                                   else hammingDistance' xs ys i
 
 gcContent :: NucleicAcid -> Double
-gcContent na = (fromIntegral(c + g)) / (fromIntegral(a + c + g + t))
-    where a = countNucleotide na A
-          c = countNucleotide na C
+gcContent na = (fromIntegral(c + g)) / (fromIntegral(length na))
+    where c = countNucleotide na C
           g = countNucleotide na G
-          t = countNucleotide na T
+
+stringToFASTAS :: String -> [Maybe FASTA]
+stringToFASTAS = (map stringsToFASTA) . prepFASTAFormat . lines
 
 stringsToFASTA :: [String] -> Maybe FASTA
 stringsToFASTA [] = Nothing
@@ -117,12 +121,24 @@ isNucleic :: String -> Bool
 isNucleic str = case (stringToNucleic str) of
                     Nothing -> False
                     Just x -> True
-
+{-
 highestGCContent :: [FASTA] -> Maybe (String, Double)
 highestGCContent [] = Nothing
 highestGCContent fastas = Just $ highestGCContent' fastas (head fastas)
+-}
+
+highestGCContent :: [FASTA] -> (String, Double)
+highestGCContent xs = (getHeader highest, 100 * (gcContent $ getDNA highest))
+    where highest = last $ sortBy (\a b -> ((gcContent $ getDNA a) `compare` (gcContent $ getDNA b))) xs
+
+getDNA :: FASTA -> NucleicAcid
+getDNA (FASTA _ dna) = dna
+
+getHeader :: FASTA -> String
+getHeader (FASTA str _) = str
 
 --TODO: Clean this up.
+{- 
 highestGCContent' :: [FASTA] -> FASTA -> (String, Double)
 highestGCContent' [] (FASTA id nucleic) = (id, 100 * (gcContent nucleic)) 
 highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
@@ -130,5 +146,4 @@ highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
     | otherwise = highestGCContent' xs (FASTA idH nucleicH)
     where current = gcContent nucleic
           high = gcContent nucleicH
-
-    
+-}

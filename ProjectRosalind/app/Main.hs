@@ -6,14 +6,14 @@ import System.IO
 import qualified System.IO.Strict as Strict
 import Data.List
 
---Test
 main :: IO ()
 main = do
-    dna <- stringToNucleic <$> getInput
-    let count = getNucleotides <$> dna
-    case count of
-        Just tuple -> print tuple
-        Nothing -> putStrLn "Invalid data entered."
+    input <- readFile "input.txt"
+    let fs = sequence $ stringToFASTAS input
+    case fs of
+        Nothing -> putStrLn "Error when loading FASTAS."
+        Just xs -> print $ highestGCContent xs
+    return ()
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
