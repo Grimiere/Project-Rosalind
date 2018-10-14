@@ -128,7 +128,7 @@ highestGCContent fastas = Just $ highestGCContent' fastas (head fastas)
 -}
 
 highestGCContent :: [FASTA] -> (String, Double)
-highestGCContent xs = (getHeader highest, 100 * (gcContent $ getDNA highest))
+highestGCContent xs = (getHeader highest, (gcContent $ getDNA highest))
     where highest = last $ sortBy (\a b -> ((gcContent $ getDNA a) `compare` (gcContent $ getDNA b))) xs
 
 getDNA :: FASTA -> NucleicAcid
