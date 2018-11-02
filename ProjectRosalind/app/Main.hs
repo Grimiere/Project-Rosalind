@@ -8,12 +8,10 @@ import Data.List
 
 main :: IO ()
 main = do
-    input <- readFile "input.txt"
-    let fs = sequence $ stringToFASTAS input
-    case fs of
-        Nothing -> putStrLn "Error when loading FASTAS."
-        Just xs -> print $ highestGCContent xs
-    return ()
+    input <- lines <$> readFile "input.txt"
+    let s = stringToNucleic $ input !! 0
+    let t = stringToNucleic $ input !! 1
+    print $ getMotifLocations <$> s <*> t
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do

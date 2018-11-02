@@ -13,7 +13,8 @@ module NucleicAcid (
     deoxyNucleotideComplement,
     hammingDistance,
     stringToFASTAS,
-    highestGCContent
+    highestGCContent,
+    getMotifLocations
 ) where 
 
 import Data.Char
@@ -147,3 +148,20 @@ highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
     where current = gcContent nucleic
           high = gcContent nucleicH
 -}
+
+getMotifLocations :: NucleicAcid -> NucleicAcid -> [Int]
+getMotifLocations [] _ = []
+getMotifLocations _ [] = []
+getMotifLocations xs ys
+    | (length ys) > (length xs) = []
+    | otherwise = getMotifLocations' xs ys [] 1
+
+getMotifLocations' :: NucleicAcid -> NucleicAcid -> [Int] -> Int -> [Int]
+getMotifLocations' [] _ carry _ = carry
+getMotifLocations' _ [] carry _ = carry
+getMotifLocations' xs ys carry i = do
+    let subStr = take (length ys) xs
+    let newCarry = if subStr == ys then carry ++ [i] else carry in 
+        getMotifLocations' (tail xs) ys newCarry (i+1)
+  
+
