@@ -1,7 +1,6 @@
 module NucleicAcid (
     Nucleotide (..),
     NucleicAcid,
-    FASTA,
     stringToNucleic,
     nucleicToString,
     charToNucleotide,
@@ -12,8 +11,6 @@ module NucleicAcid (
     getDNAComplement,
     deoxyNucleotideComplement,
     hammingDistance,
-    stringToFASTAS,
-    highestGCContent,
     getMotifLocations
 ) where 
 
@@ -23,8 +20,8 @@ import System.IO
 
 data Nucleotide = A | C | G | T | U deriving (Show,Read, Eq)
 type NucleicAcid = [Nucleotide]
-data FASTA = FASTA String NucleicAcid deriving (Show, Read, Eq)
 
+--TODO: Reimplement this.
 stringToNucleic :: String -> Maybe NucleicAcid
 stringToNucleic [] = Nothing
 stringToNucleic str
@@ -88,10 +85,8 @@ gcContent :: NucleicAcid -> Double
 gcContent na = 100 * (fromIntegral(c + g)) / (fromIntegral(length na))
     where c = countNucleotide na C
           g = countNucleotide na G
-
-stringToFASTAS :: String -> [Maybe FASTA]
-stringToFASTAS = (map stringsToFASTA) . prepFASTAFormat . lines
-
+                                        
+{-
 stringsToFASTA :: [String] -> Maybe FASTA
 stringsToFASTA [] = Nothing
 stringsToFASTA (x:xs)
@@ -111,42 +106,6 @@ prepFASTAFormat' (x:xs) carry
     | isFASTAHeader x = let nucleics = takeWhile isNucleic xs in
                         prepFASTAFormat' xs (carry ++ [[x] ++ nucleics])
     | otherwise = prepFASTAFormat' xs carry
-
-isFASTAHeader :: String -> Bool
-isFASTAHeader [] = False
-isFASTAHeader (x:xs)
-    | x == '>' = True
-    | otherwise = False
-
-isNucleic :: String -> Bool
-isNucleic str = case (stringToNucleic str) of
-                    Nothing -> False
-                    Just x -> True
-{-
-highestGCContent :: [FASTA] -> Maybe (String, Double)
-highestGCContent [] = Nothing
-highestGCContent fastas = Just $ highestGCContent' fastas (head fastas)
--}
-
-highestGCContent :: [FASTA] -> (String, Double)
-highestGCContent xs = (getHeader highest, (gcContent $ getDNA highest))
-    where highest = last $ sortBy (\a b -> ((gcContent $ getDNA a) `compare` (gcContent $ getDNA b))) xs
-
-getDNA :: FASTA -> NucleicAcid
-getDNA (FASTA _ dna) = dna
-
-getHeader :: FASTA -> String
-getHeader (FASTA str _) = str
-
---TODO: Clean this up.
-{- 
-highestGCContent' :: [FASTA] -> FASTA -> (String, Double)
-highestGCContent' [] (FASTA id nucleic) = (id, 100 * (getGCContent nucleic)) 
-highestGCContent' ((FASTA id nucleic):xs) (FASTA idH nucleicH)
-    | current > high = highestGCContent' xs (FASTA id nucleic)
-    | otherwise = highestGCContent' xs (FASTA idH nucleicH)
-    where current = gcContent nucleic
-          high = gcContent nucleicH
 -}
 
 getMotifLocations :: NucleicAcid -> NucleicAcid -> [Int]
@@ -164,4 +123,3 @@ getMotifLocations' xs ys carry i = do
     let newCarry = if subStr == ys then carry ++ [i] else carry in 
         getMotifLocations' (tail xs) ys newCarry (i+1)
   
-

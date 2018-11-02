@@ -1,7 +1,10 @@
 module Misc (
+    Motif (..),
     unconcat,
-    sanitize
+    sanitize,
 ) where
+
+data Motif a = Always a  | Either [a] | Except a  deriving (Show, Read, Eq)
 
 sanitize :: String -> String
 sanitize = filter (/= ' ') . filter (/= '\0') . filter (/= '\n')

@@ -6,17 +6,21 @@ module Peptide (
     MassTable,
     codonToAmino,
     createCodonTable,
-    aminoToMass,
+    getAminoMass,
+    getPeptideMass,
     createMassTable,
     rnaToPeptide,
     peptideToString,
     getAminoCodons,
-    stringToPeptide
+    stringToPeptide,
+    generatePeptideMotif,
+    peptideMotifLocations,
 ) where
 
 import qualified NucleicAcid as NA
-import Misc (unconcat, sanitize)
+import Misc
 import Data.List
+import Control.Monad.Reader
 import qualified UnorderedMap as UM
 import Text.Read (readMaybe)
 
@@ -27,8 +31,10 @@ type Codon = (NA.Nucleotide, NA.Nucleotide, NA.Nucleotide)
 type CodonTable = UM.UnorderedMap Codon AminoAcid
 type MassTable = UM.UnorderedMap AminoAcid Double
 
-codonToAmino :: Codon -> CodonTable -> Maybe AminoAcid
-codonToAmino codon table = UM.lookup codon table  
+codonToAmino :: Codon -> Reader CodonTable (Maybe AminoAcid)
+codonToAmino codon = do
+    table <- ask
+    return $ UM.lookup codon table  
 
 createCodonTable :: [String] -> CodonTable
 createCodonTable str =  createCodonTable' str UM.empty
@@ -46,8 +52,15 @@ createCodonTable' (x:xs) carry = do
             let new = map (\c -> (c, amino)) ys
             createCodonTable' xs (UM.insertSet new carry)
         
-aminoToMass :: MassTable -> AminoAcid -> Maybe Double
-aminoToMass table amino = UM.lookup amino table
+getAminoMass :: AminoAcid -> Reader MassTable (Maybe Double)
+getAminoMass amino = do
+    table <- ask 
+    return $ UM.lookup amino table
+
+getPeptideMass :: Peptide -> Reader MassTable (Maybe Double)
+getPeptideMass xs = do 
+    table <- ask
+    return $ sum <$> sequence (map (\aa -> runReader (getAminoMass aa) table) xs)
 
 createMassTable :: [String] -> MassTable
 createMassTable str = createMassTable' str UM.empty
@@ -59,9 +72,11 @@ createMassTable' (x:xs) carry = do
     let mass = (read :: String -> Double ) $ sanitize $ drop 1 $ dropWhile (/= ':') x
     createMassTable' xs (UM.insert (amino, mass) carry)
 
-rnaToPeptide :: NA.NucleicAcid -> CodonTable -> Peptide
-rnaToPeptide [] _ = []
-rnaToPeptide rna table = rnaToPeptide' rna table []
+rnaToPeptide :: NA.NucleicAcid -> Reader CodonTable Peptide
+rnaToPeptide [] = return []
+rnaToPeptide rna = do 
+    table <- ask
+    return $ rnaToPeptide' rna table []
 
 rnaToPeptide' :: NA.NucleicAcid -> CodonTable -> Peptide -> Peptide
 rnaToPeptide' [] _ carry = carry
@@ -71,7 +86,7 @@ rnaToPeptide' (x:y:z:xs) table carry = case amino of
                                        Nothing -> []
                                        Just STOP -> carry --Stop codon reached, no more synthesis.
                                        Just a -> rnaToPeptide' xs table (carry ++ [a])
-    where amino = codonToAmino (x,y,z) table
+    where amino = runReader (codonToAmino (x,y,z)) table
 
 stringToCodon :: String -> Maybe Codon
 stringToCodon str
@@ -93,6 +108,17 @@ stringToPeptide' :: String -> [Maybe AminoAcid] -> Maybe Peptide
 stringToPeptide' [] carry = sequence carry
 stringToPeptide' (x:xs) carry = stringToPeptide' xs (carry ++ [readMaybe [x] ])
 
-getAminoCodons :: AminoAcid -> CodonTable -> [Codon]
-getAminoCodons amino table = let list = UM.toList table in
-                             map fst $ filter (\pair -> (snd pair )== amino) list
+getAminoCodons :: AminoAcid -> Reader CodonTable [Codon]
+getAminoCodons amino = do 
+    table <- ask
+    let list = UM.toList table in
+        return $ map fst $ filter (\pair -> (snd pair )== amino) list
+
+generatePeptideMotif :: String -> Motif AminoAcid
+generatePeptideMotif (x:xs) = undefined
+
+peptideMotifLocations :: Peptide -> [Int]
+peptideMotifLocations = undefined
+
+
+
