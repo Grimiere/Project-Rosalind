@@ -19,7 +19,7 @@ main = do
             let locs = map (filter (/= '\\')) $ map tidyList (map (\f -> (findPeptideMotif (getPeptide f) motif)) xs)
             let pairs = zip (map (filter (/= '\\')) input) locs
             let out = (map show pairs)
-            mapM_ putStrLn out
+            mapM_ print out
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do

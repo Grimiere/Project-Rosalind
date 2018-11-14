@@ -23,31 +23,13 @@ type NucleicAcid = [Nucleotide]
 
 --TODO: Reimplement this.
 stringToNucleic :: String -> Maybe NucleicAcid
-stringToNucleic [] = Nothing
-stringToNucleic str
-    | summed < (length str) = Nothing
-    | otherwise = sequence $ map charToNucleotide fixed 
-    where summed = ac + tc + gc + cc + uc
-          fixed = map toUpper str
-          nCount = count fixed
-          ac = nCount 'A'
-          tc = nCount 'T'
-          gc = nCount 'G'
-          cc = nCount 'C'
-          uc = nCount 'U'
+stringToNucleic = undefined
 
 nucleicToString :: NucleicAcid -> String
 nucleicToString na = concat $ map show na
 
 charToNucleotide :: Char -> Maybe Nucleotide
-charToNucleotide x
-    | char == 'A' = Just A
-    | char == 'T' = Just T
-    | char == 'G' = Just G
-    | char == 'C' = Just C
-    | char == 'U' = Just U
-    | otherwise = Nothing
-    where char = toUpper x
+charToNucleotide = undefined
 
 count :: (Eq a) => [a] -> a -> Int
 count l a = length $ a `elemIndices` l
