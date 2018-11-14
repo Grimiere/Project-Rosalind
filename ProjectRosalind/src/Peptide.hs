@@ -86,6 +86,9 @@ rnaToPeptide' (x:y:z:xs) table carry = case amino of
                                        Just a -> rnaToPeptide' xs table (carry ++ [a])
     where amino = runReader (codonToAmino (x,y,z)) table
 
+charToAminoAcid :: Char -> Maybe AminoAcid
+charToAminoAcid x = readMaybe [x]
+
 stringToCodon :: String -> Maybe Codon
 stringToCodon str
     | length str /= 3 = Nothing
@@ -111,6 +114,43 @@ getAminoCodons amino = do
     table <- ask
     let list = UM.toList table in
         return $ map fst $ filter (\pair -> (snd pair )== amino) list
+
+isAminoAcid :: Char -> Bool
+isAminoAcid x = case (charToAminoAcid x) of
+    Just _ -> True
+    Nothing -> False
+
+generatePeptideMotif :: String -> Motif AminoAcid
+generatePeptideMotif [] = []
+generatePeptideMotif xs = generatePeptideMotif' xs []
+
+--TODO: Clean this up. No support for N ... Except P.
+generatePeptideMotif' :: String -> (Motif AminoAcid) -> (Motif AminoAcid)
+generatePeptideMotif' [] carry = carry
+generatePeptideMotif' [x] carry = if isAminoAcid x then (carry ++ [Always (getAmino x)]) else []
+            where getAmino x = (read ::String -> AminoAcid) [x]
+generatePeptideMotif' (x:xs) carry
+        | isAminoAcid x = generatePeptideMotif' xs (carry ++ [Always $ getAmino x])
+        | otherwise = case x of
+            '[' -> let aminos = takeWhile isAminoAcid xs in
+                generatePeptideMotif' (drop ((length aminos) + 1) xs) (carry ++ [Either $ map getAmino aminos])
+            '{' -> let aminos = takeWhile isAminoAcid xs in
+                generatePeptideMotif' (drop ((length aminos) + 1 ) xs) (carry ++ [Except $ map getAmino aminos])
+            otherwise -> []
+            where getAmino x = (read ::String -> AminoAcid) [x]
+
+peptideMotifLocations :: Peptide -> (Motif AminoAcid) -> (Motif AminoAcid) -> Int -> [Int] -> [Int]
+peptideMotifLocations [] _ _ _ c = c
+peptideMotifLocations xs [] fullMotif i c = peptideMotifLocations xs fullMotif fullMotif i (c ++ [i - (length fullMotif)])
+peptideMotifLocations (x:xs) (y:ys) fullMotif i c
+        | aminoMatchesRule x y = peptideMotifLocations xs ys fullMotif (i + 1) c
+        | otherwise = peptideMotifLocations xs fullMotif fullMotif (i + 1) c
+
+aminoMatchesRule :: AminoAcid -> (MotifRule AminoAcid) -> Bool
+aminoMatchesRule a (Always x) = a == x
+aminoMatchesRule a (Either xs) = a `elem` xs
+aminoMatchesRule a (Except xs) = not $ a `elem` xs
+
 
 
 
