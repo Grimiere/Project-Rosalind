@@ -1,15 +1,10 @@
 module Misc (
-<<<<<<< HEAD
-=======
     Motif (..),
     MotifRule (..),
->>>>>>> ProteinMotif
     unconcat,
     sanitize,
 ) where
 
-<<<<<<< HEAD
-=======
 --N{P}[ST] = Always N, Except [P], Either [S, T] -- [MotifRule (Maybe AminoAcid)]
 type Motif a = [(MotifRule a)]
 data MotifRule a = Always a  | Either [a] | Except [a]  deriving (Show, Read, Eq)
@@ -22,7 +17,6 @@ instance Functor MotifRule where
 getMotifLength :: Motif a -> Int
 getMotifLength xs = length xs
 
->>>>>>> ProteinMotif
 sanitize :: String -> String
 sanitize = filter (/= ' ') . filter (/= '\0') . filter (/= '\n')
 

@@ -13,6 +13,8 @@ module Peptide (
     peptideToString,
     getAminoCodons,
     stringToPeptide,
+    generatePeptideMotif,
+    findPeptideMotif,
 ) where
 
 import qualified NucleicAcid as NA
@@ -138,6 +140,10 @@ generatePeptideMotif' (x:xs) carry
                 generatePeptideMotif' (drop ((length aminos) + 1 ) xs) (carry ++ [Except $ map getAmino aminos])
             otherwise -> []
             where getAmino x = (read ::String -> AminoAcid) [x]
+
+--peptideMotifLocations xs m m 1 []
+findPeptideMotif :: Peptide -> (Motif AminoAcid) -> [Int]
+findPeptideMotif xs m = foldr (\i acc -> acc ++ (peptideMotifLocations xs m m i [])) [] [1..(length xs)] 
 
 peptideMotifLocations :: Peptide -> (Motif AminoAcid) -> (Motif AminoAcid) -> Int -> [Int] -> [Int]
 peptideMotifLocations [] _ _ _ c = c

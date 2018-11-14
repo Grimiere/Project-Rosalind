@@ -2,6 +2,7 @@ import NucleicAcid
 import Peptide
 import Misc
 import FASTA
+import Uniprot
 
 import System.IO
 import qualified System.IO.Strict as Strict
@@ -10,13 +11,15 @@ import Data.List
 main :: IO ()
 main = do
     let motif = generatePeptideMotif "N{P}[ST]{P}"
-    input <- readFile "input.txt"
-    let peptide = getPeptide <$> (head $ stringToPeptideFASTAS input)
-    let locs = peptideMotifLocations <$> peptide <*> (pure motif) <*> (pure motif) <*> (pure 1) <*> (pure [])
-    print locs
-
---Wants: Just [Rule a]
---Have: [Just $ Rule a]
+    input <- lines <$> readFile "input.txt"
+    fastas <- sequence <$> mapM idToPeptideFASTA input
+    case fastas of 
+        Nothing -> print "???" >> return ()
+        Just xs -> do
+            let locs = map (filter (/= '\\')) $ map tidyList (map (\f -> (findPeptideMotif (getPeptide f) motif)) xs)
+            let pairs = zip (map (filter (/= '\\')) input) locs
+            let out = (map show pairs)
+            mapM_ putStrLn out
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
