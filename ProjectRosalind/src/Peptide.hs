@@ -114,11 +114,5 @@ getAminoCodons amino = do
     let list = UM.toList table in
         return $ map fst $ filter (\pair -> (snd pair )== amino) list
 
-generatePeptideMotif :: String -> Motif AminoAcid
-generatePeptideMotif (x:xs) = undefined
-
-peptideMotifLocations :: Peptide -> [Int]
-peptideMotifLocations = undefined
-
 
 
