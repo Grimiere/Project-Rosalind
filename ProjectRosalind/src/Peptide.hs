@@ -13,8 +13,6 @@ module Peptide (
     peptideToString,
     getAminoCodons,
     stringToPeptide,
-    generatePeptideMotif,
-    peptideMotifLocations,
 ) where
 
 import qualified NucleicAcid as NA
