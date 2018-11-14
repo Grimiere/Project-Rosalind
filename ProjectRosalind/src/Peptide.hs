@@ -143,7 +143,7 @@ generatePeptideMotif' (x:xs) carry
 
 peptideMotifLocations :: Peptide -> (Motif AminoAcid) -> (Motif AminoAcid) -> Int -> [Int] -> [Int]
 peptideMotifLocations [] _ _ _ c = c
-peptideMotifLocations xs [] fullMotif i c = peptideMotifLocations xs fullMotif fullMotif (i + (length fullMotif)) (c ++ [i - (length fullMotif)])
+peptideMotifLocations xs [] fullMotif i c = peptideMotifLocations xs fullMotif fullMotif i (c ++ [i - (length fullMotif)])
 peptideMotifLocations (x:xs) (y:ys) fullMotif i c
         | aminoMatchesRule x y = peptideMotifLocations xs ys fullMotif (i + 1) c
         | otherwise = peptideMotifLocations xs fullMotif fullMotif (i + 1) c
