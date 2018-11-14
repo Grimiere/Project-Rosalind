@@ -14,18 +14,6 @@ instance Functor MotifRule where
     fmap f (Either a) = Either $ map f a
     fmap f (Except a) = Except $ map f a
 
-instance Applicative MotifRule where
-    pure = Always
-    (Always f) <*> (Always a) = Always $ f a
-    (Always f) <*> (Either a) = Either $ map f a
-    (Always f) <*> (Except a) = Except $ map f a
-    (Either a) <*> (Always b) = Either $ a <*> [b] --PATTERN
-    (Either a) <*> (Either b) = Either $ a <*> b
-    (Either a) <*> (Except b) = Except $ a <*> b
-    (Except a) <*> (Always b) = Except $ a <*> [b]
-    (Except a) <*> (Either b) = Either $ a <*> b
-    (Except a) <*> (Except b) = Except $ a <*> b
-
 getMotifLength :: Motif a -> Int
 getMotifLength xs = length xs
 
