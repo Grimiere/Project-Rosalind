@@ -15,6 +15,7 @@ module Peptide (
     stringToPeptide,
     generatePeptideMotif,
     findPeptideMotif,
+    peptideMatchesRule,
 ) where
 
 import qualified NucleicAcid as NA
@@ -140,17 +141,19 @@ generatePeptideMotif' (x:xs) carry
                 generatePeptideMotif' (drop ((length aminos) + 1 ) xs) (carry ++ [Except $ map getAmino aminos])
             otherwise -> []
             where getAmino x = (read ::String -> AminoAcid) [x]
-
---peptideMotifLocations xs m m 1 []
+        
 findPeptideMotif :: Peptide -> (Motif AminoAcid) -> [Int]
-findPeptideMotif xs m = foldr (\i acc -> acc ++ (peptideMotifLocations xs m m i [])) [] [1..(length xs)] 
+findPeptideMotif xs m = foldr (\x acc -> if (peptideMatchesRule (subX x) m) then ((1+x) : acc) else acc) [] [0..(length xs)]
+    where subX n = take (length m) $ drop n xs
 
-peptideMotifLocations :: Peptide -> (Motif AminoAcid) -> (Motif AminoAcid) -> Int -> [Int] -> [Int]
-peptideMotifLocations [] _ _ _ c = c
-peptideMotifLocations xs [] fullMotif i c = peptideMotifLocations xs fullMotif fullMotif i (c ++ [i - (length fullMotif)])
-peptideMotifLocations (x:xs) (y:ys) fullMotif i c
-        | aminoMatchesRule x y = peptideMotifLocations xs ys fullMotif (i + 1) c
-        | otherwise = peptideMotifLocations xs fullMotif fullMotif (i + 1) c
+peptideMatchesRule :: Peptide -> (Motif AminoAcid) -> Bool
+peptideMatchesRule [] _ = False
+peptideMatchesRule _ [] = False
+peptideMatchesRule xs ys
+        | (length xs) /= (length ys) = False
+        | otherwise = and mapZipped
+                where zipped = zip xs ys
+                      mapZipped = map (\(a,m) -> aminoMatchesRule a m) zipped
 
 aminoMatchesRule :: AminoAcid -> (MotifRule AminoAcid) -> Bool
 aminoMatchesRule a (Always x) = a == x

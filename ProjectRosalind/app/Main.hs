@@ -9,8 +9,23 @@ import qualified System.IO.Strict as Strict
 import Data.List
 
 main :: IO ()
+<<<<<<< HEAD
 main = undefined
     
+=======
+main = do
+    let motif = generatePeptideMotif "N{P}[ST]{P}"
+    input <- lines <$> readFile "input.txt"
+    fastas <- sequence <$> mapM idToPeptideFASTA input
+    case fastas of 
+        Nothing -> print "???" >> return ()
+        Just xs -> do
+            let locs = map (filter (/= '\\')) $ map tidyList (map (\f -> (findPeptideMotif (getPeptide f) motif)) xs)
+            let pairs = zip (map (filter (/= '\\')) input) locs
+            let out = (map show pairs)
+            mapM_ print out
+
+>>>>>>> c529164362c8f2296187db5c1a05cd66bb8f4966
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
     cHandle <- openFile "CodonTable.txt" ReadMode
