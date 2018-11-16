@@ -1,9 +1,13 @@
 module Misc (
     Motif (..),
     MotifRule (..),
+    maybeHead,
+    maybeLast,
     unconcat,
     sanitize,
 ) where
+
+import Data.List
 
 --N{P}[ST] = Always N, Except [P], Either [S, T] -- [MotifRule (Maybe AminoAcid)]
 type Motif a = [(MotifRule a)]
@@ -19,6 +23,16 @@ getMotifLength xs = length xs
 
 sanitize :: String -> String
 sanitize = filter (/= ' ') . filter (/= '\0') . filter (/= '\n')
+
+maybeHead :: [a] -> Maybe a
+maybeHead [] = Nothing
+maybeHead [x] = Just x
+maybeHead (x:xs) = Just x
+
+maybeLast :: [a] -> Maybe a
+maybeLast [] = Nothing
+maybeLast [x] = Just x
+maybeLast (x:xs) = maybeLast xs
 
 unconcat :: [a] -> [[a]]
 unconcat [] = []
