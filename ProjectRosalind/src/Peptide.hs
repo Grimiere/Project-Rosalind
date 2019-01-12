@@ -9,7 +9,9 @@ module Peptide (
     getAminoMass,
     getPeptideMass,
     createMassTable,
+    getOpenReadingFrames,
     rnaToPeptide,
+    stringToCodon,
     peptideToString,
     getAminoCodons,
     stringToPeptide,
@@ -18,7 +20,7 @@ module Peptide (
     peptideMatchesRule,
 ) where
 
-import qualified NucleicAcid as NA
+import NucleicAcid as N
 import Misc
 import Data.List
 import Control.Monad.Reader
@@ -28,7 +30,7 @@ import Text.Read (readMaybe)
 type Peptide = [AminoAcid]
 data AminoAcid = A | R | N | D | C | Q | E | G | H | I | L | K |
                  M | F | P | S | T | W | Y | V | STOP deriving (Show, Read, Eq, Enum)
-type Codon = (NA.Nucleotide, NA.Nucleotide, NA.Nucleotide)
+type Codon = (Nucleotide, Nucleotide, Nucleotide)
 type CodonTable = UM.UnorderedMap Codon AminoAcid
 type MassTable = UM.UnorderedMap AminoAcid Double
 
@@ -73,13 +75,21 @@ createMassTable' (x:xs) carry = do
     let mass = (read :: String -> Double ) $ sanitize $ drop 1 $ dropWhile (/= ':') x
     createMassTable' xs (UM.insert (amino, mass) carry)
 
-rnaToPeptide :: NA.NucleicAcid -> Reader CodonTable Peptide
+getOpenReadingFrames :: [Codon] -> [Codon]
+getOpenReadingFrames [] = []
+getOpenReadingFrames [x] = []
+getOpenReadingFrames xs = getEnd
+                    where getStart = dropWhile (/= (N.A,N.U,N.G)) xs
+                          getEnd = takeWhile (\x -> not $ isStopCodon x) getStart
+                          isStopCodon x = ((x == (N.U, N.A, N.G)) || (x == (N.U, N.A, N.A)) || (x == (N.U, N.G, N.A)))
+
+rnaToPeptide :: NucleicAcid -> Reader CodonTable Peptide
 rnaToPeptide [] = return []
 rnaToPeptide rna = do 
     table <- ask
     return $ rnaToPeptide' rna table []
 
-rnaToPeptide' :: NA.NucleicAcid -> CodonTable -> Peptide -> Peptide
+rnaToPeptide' :: NucleicAcid -> CodonTable -> Peptide -> Peptide
 rnaToPeptide' [] _ carry = carry
 rnaToPeptide' l _ carry
             | length l < 3 = carry
@@ -99,7 +109,7 @@ stringToCodon str
                   Nothing -> Nothing
                   Just (x:y:z:xs) -> Just (x, y, z)
     where fixed = unconcat str
-          result = sequence $ map (readMaybe :: String -> Maybe NA.Nucleotide) fixed
+          result = sequence $ map (readMaybe :: String -> Maybe Nucleotide) fixed
 
 peptideToString :: Peptide -> String
 peptideToString p = concat $ map show p

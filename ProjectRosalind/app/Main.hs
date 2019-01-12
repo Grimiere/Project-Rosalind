@@ -5,21 +5,27 @@ import FASTA
 import Uniprot
 
 import System.IO
+import Control.Monad.Reader
 import qualified System.IO.Strict as Strict
 import Data.List
 
 main :: IO ()
 main = do
-    let motif = generatePeptideMotif "N{P}[ST]{P}"
-    input <- lines <$> readFile "input.txt"
-    fastas <- sequence <$> mapM idToPeptideFASTA input
-    case fastas of 
-        Nothing -> print "???" >> return ()
-        Just xs -> do
-            let locs = map (filter (/= '\\')) $ map tidyList (map (\f -> (findPeptideMotif (getPeptide f) motif)) xs)
-            let pairs = zip (map (filter (/= '\\')) input) locs
-            let out = (map show pairs)
-            mapM_ print out
+    table <- loadCodonTable
+    let acid = toRna "AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATAAGCCTGAATGATCCGAGTAGCATCTCAG"
+    let rnaCombs = [acid, (reverse acid), (comp acid), (reverse $ comp acid)]
+    let codons = sequence $ map sequence $ map (\x -> map stringToCodon x) $ map (\x -> chunkList x 3) rnaCombs
+    let orfs = (map getOpenReadingFrames) <$> codons
+    let f1 = head <$> orfs
+    let p = runReader $ 
+        where comp x = map alt x
+              toRna xs = map (\x -> if x == 'T' then 'U' else x) xs
+              alt n = case n of 
+                'A' -> 'U'
+                'G' -> 'C'
+                'C' -> 'G'
+                'U' -> 'A'
+                otherwise -> 'Z'
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do

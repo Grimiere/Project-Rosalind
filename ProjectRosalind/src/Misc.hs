@@ -3,6 +3,7 @@ module Misc (
     MotifRule (..),
     unconcat,
     sanitize,
+    chunkList,
 ) where
 
 --N{P}[ST] = Always N, Except [P], Either [S, T] -- [MotifRule (Maybe AminoAcid)]
@@ -28,3 +29,8 @@ population :: (Int, Int) -> Int -> Int -> Int
 population (n, k) adults children
     | n == 1 = adults + children
     | otherwise = population (n-1, k) (adults + children) (k * adults)
+
+chunkList :: [a] -> Int -> [[a]]
+chunkList [] _ = []
+chunkList [a] _ = [[a]]
+chunkList xs i = [take i xs] ++ (chunkList (drop i xs) i) 
