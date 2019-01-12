@@ -10,22 +10,7 @@ import qualified System.IO.Strict as Strict
 import Data.List
 
 main :: IO ()
-main = do
-    table <- loadCodonTable
-    let acid = toRna "AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATAAGCCTGAATGATCCGAGTAGCATCTCAG"
-    let rnaCombs = [acid, (reverse acid), (comp acid), (reverse $ comp acid)]
-    let codons = sequence $ map sequence $ map (\x -> map stringToCodon x) $ map (\x -> chunkList x 3) rnaCombs
-    let orfs = (map getOpenReadingFrames) <$> codons
-    let f1 = head <$> orfs
-    let p = runReader $ 
-        where comp x = map alt x
-              toRna xs = map (\x -> if x == 'T' then 'U' else x) xs
-              alt n = case n of 
-                'A' -> 'U'
-                'G' -> 'C'
-                'C' -> 'G'
-                'U' -> 'A'
-                otherwise -> 'Z'
+main = undefined
 
 loadCodonTable :: IO (CodonTable)
 loadCodonTable = do
